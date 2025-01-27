@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { getSpotifyAuthUrl } from "./spotifyAuth";
+import UserProfile from "./components/UserProfile";
+import SearchSpotify from "./components/SearchSpotify";
+import Playlists from "./components/Playlists";
 
 function App() {
     const [accessToken, setAccessToken] = useState(null);
     const [userData, setUserData] = useState(null);
     const [playlists, setPlaylists] = useState([]);
-    const [searchQuery, setSearchQuery] = useState("");
-    const [searchResults, setSearchResults] = useState([]);
 
     // Extract access token from URL after login
     useEffect(() => {
@@ -49,101 +50,23 @@ function App() {
         }
     }, [accessToken]);
 
-    // Handle Search
-    const handleSearch = (e) => {
-        e.preventDefault();
-
-        if (!searchQuery) return;
-
-        fetch(`https://api.spotify.com/v1/search?q=${encodeURIComponent(searchQuery)}&type=track,artist,album`, {
-            headers: {
-                Authorization: `Bearer ${accessToken}`,
-            },
-        })
-            .then((response) => response.json())
-            .then((data) => {
-                setSearchResults(data.tracks?.items || []);
-            })
-            .catch((error) => console.error("Error searching Spotify:", error));
-    };
-
     return (
-        <div className="App">
+        <div className="App bg-gray-900 min-h-screen flex">
             {!accessToken ? (
-                <a href={getSpotifyAuthUrl()}>Log in with Spotify</a>
+                <div className="flex flex-col items-center justify-center w-full">
+                    <h1 className="text-5xl font-bold mb-8 text-center">Welcome to Spotify</h1>
+                    <a
+                        href={getSpotifyAuthUrl()}
+                        className="bg-green-500 px-8 py-4 rounded-full text-2xl font-bold hover:bg-green-600 transition"
+                    >
+                        Log In
+                    </a>
+                </div>
             ) : (
-                <div>
-                    <h1>Welcome, {userData?.display_name}</h1>
-                    {userData?.images?.[0] && (
-                        <img
-                            src={userData.images[0].url}
-                            alt="Profile"
-                            style={{ borderRadius: "50%", width: "100px" }}
-                        />
-                    )}
-                    <p>Email: {userData?.email}</p>
-                    <p>Followers: {userData?.followers?.total}</p>
-
-                    {/* Search Section */}
-                    <div>
-                        <h2>Search Spotify</h2>
-                        <form onSubmit={handleSearch}>
-                            <input
-                                type="text"
-                                placeholder="Search for songs, albums, or artists"
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                style={{ padding: "5px", width: "300px", marginRight: "10px" }}
-                            />
-                            <button type="submit">Search</button>
-                        </form>
-                    </div>
-
-                    {/* Display Search Results */}
-                    {searchResults.length > 0 && (
-                        <div>
-                            <h3>Search Results</h3>
-                            <ul>
-                                {searchResults.map((item) => (
-                                    <li key={item.id} style={{ marginBottom: "10px" }}>
-                                        {item.album?.images?.[0] && (
-                                            <img
-                                                src={item.album.images[0].url}
-                                                alt="Album Art"
-                                                style={{ width: "50px", height: "50px", marginRight: "10px" }}
-                                            />
-                                        )}
-                                        <strong>{item.name}</strong> by {item.artists.map((artist) => artist.name).join(", ")}
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
-                    )}
-
-                    {/* Display Playlists */}
-                    {playlists.length > 0 && (
-                        <div>
-                            <h2>Your Playlists</h2>
-                            <ul>
-                                {playlists.map((playlist) => (
-                                    <li key={playlist.id} style={{ marginBottom: "10px" }}>
-                                        {playlist.images?.[0] && (
-                                            <img
-                                                src={playlist.images[0].url}
-                                                alt="Playlist Cover"
-                                                style={{
-                                                    width: "50px",
-                                                    height: "50px",
-                                                    marginRight: "10px",
-                                                }}
-                                            />
-                                        )}
-                                        {playlist.name}
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
-                    )}
+                <div className="container mx-auto">
+                    <UserProfile userData={userData} />
+                    <SearchSpotify accessToken={accessToken} />
+                    <Playlists playlists={playlists} />
                 </div>
             )}
         </div>
