@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/smuntasi/spotify-app/static/css/main.e6c13ad2.css",
+    "main.js": "/smuntasi/spotify-app/static/js/main.3857115b.js",
+    "static/js/488.61014c96.chunk.js": "/smuntasi/spotify-app/static/js/488.61014c96.chunk.js",
+    "index.html": "/smuntasi/spotify-app/index.html",
+    "main.e6c13ad2.css.map": "/smuntasi/spotify-app/static/css/main.e6c13ad2.css.map",
+    "main.3857115b.js.map": "/smuntasi/spotify-app/static/js/main.3857115b.js.map",
+    "488.61014c96.chunk.js.map": "/smuntasi/spotify-app/static/js/488.61014c96.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.e6c13ad2.css",
+    "static/js/main.3857115b.js"
+  ]
+}
