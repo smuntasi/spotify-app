@@ -21,3 +21,9 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# Python - ignore venv in ANY folder
+**/venv/          
+__pycache__/
+*.pyc
+.env
