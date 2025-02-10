@@ -2,8 +2,11 @@ import React, { useState } from "react";
 import AddToPlaylist from "./AddToPlaylist";
 
 const SearchSpotify = ({ accessToken }) => {
+    console.log("Access Token in SearchSpotify:", accessToken);
+
     const [searchQuery, setSearchQuery] = useState("");
     const [searchResults, setSearchResults] = useState([]);
+    const [selectedTrackUri, setSelectedTrackUri] = useState(null);
 
     const handleSearch = (e) => {
         e.preventDefault();
@@ -57,7 +60,9 @@ const SearchSpotify = ({ accessToken }) => {
                                     />
                                 )}
                                 <div>
-                                    <p className="text-white font-bold">{track.name}</p>
+                                    <p className="text-white font-bold">
+                                        {track.name}
+                                    </p>
                                     <p className="text-gray-400">
                                         {track.artists
                                             .map((artist) => artist.name)
