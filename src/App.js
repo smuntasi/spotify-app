@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { getSpotifyAuthUrl } from "./spotifyAuth";
+import { BrowserRouter as Router, Route, Routes, Link } from "react-router-dom";
+import WelcomeScreen from "./components/WelcomeScreen";
 import UserProfile from "./components/UserProfile";
-import SearchSpotify from "./components/SearchSpotify";
 import Playlists from "./components/Playlists";
+import SearchSpotify from "./components/SearchSpotify";
+import CurrentlyPlaying from "./components/CurrentlyPlaying"; // Import the CurrentlyPlaying component
 
 function App() {
     const [accessToken, setAccessToken] = useState(null);
@@ -17,6 +19,7 @@ function App() {
             const token = params.get("access_token");
             if (token) {
                 setAccessToken(token);
+                localStorage.setItem("spotifyAccessToken", token); // Store token in localStorage
                 window.location.hash = ""; // Clear the hash
             }
         }
@@ -51,25 +54,36 @@ function App() {
     }, [accessToken]);
 
     return (
-        <div className="App bg-gray-900 min-h-screen flex">
-            {!accessToken ? (
-                <div className="flex flex-col items-center justify-center w-full">
-                    <h1 className="text-5xl font-bold mb-8 text-center">Welcome to Spotify</h1>
-                    <a
-                        href={getSpotifyAuthUrl()}
-                        className="bg-green-500 px-8 py-4 rounded-full text-2xl font-bold hover:bg-green-600 transition"
-                    >
-                        Log In
-                    </a>
-                </div>
-            ) : (
-                <div className="container mx-auto">
-                    <UserProfile userData={userData} />
-                    <SearchSpotify accessToken={accessToken} />
-                    <Playlists playlists={playlists} />
-                </div>
-            )}
-        </div>
+        <Router>
+            <div className="App bg-gray-900 min-h-screen text-white relative">
+                {/* Display Currently Playing */}
+                {accessToken && <CurrentlyPlaying accessToken={accessToken} />}
+                
+                {!accessToken ? (
+                    <WelcomeScreen />
+                ) : (
+                    <div className="container mx-auto p-5">
+                        <nav className="flex space-x-6 border-b border-gray-700 pb-3 mb-5">
+                            <Link to="/profile" className="hover:text-green-400">
+                                | Profile |
+                            </Link>
+                            <Link to="/playlists" className="hover:text-green-400">
+                                | Playlists |
+                            </Link>
+                            <Link to="/search" className="hover:text-green-400">
+                                | Search |
+                            </Link>
+                        </nav>
+
+                        <Routes>
+                            <Route path="/profile" element={<UserProfile userData={userData} />} />
+                            <Route path="/playlists" element={<Playlists playlists={playlists} />} />
+                            <Route path="/search" element={<SearchSpotify accessToken={accessToken} />} />
+                        </Routes>
+                    </div>
+                )}
+            </div>
+        </Router>
     );
 }
 

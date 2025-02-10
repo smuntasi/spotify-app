@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import AddToPlaylist from "./AddToPlaylist";
 
 const SearchSpotify = ({ accessToken }) => {
     const [searchQuery, setSearchQuery] = useState("");
@@ -9,11 +10,14 @@ const SearchSpotify = ({ accessToken }) => {
 
         if (!searchQuery) return;
 
-        fetch(`https://api.spotify.com/v1/search?q=${encodeURIComponent(searchQuery)}&type=track,artist,album`, {
-            headers: {
-                Authorization: `Bearer ${accessToken}`,
-            },
-        })
+        fetch(
+            `https://api.spotify.com/v1/search?q=${encodeURIComponent(searchQuery)}&type=track`,
+            {
+                headers: {
+                    Authorization: `Bearer ${accessToken}`,
+                },
+            }
+        )
             .then((response) => response.json())
             .then((data) => {
                 setSearchResults(data.tracks?.items || []);
@@ -23,37 +27,52 @@ const SearchSpotify = ({ accessToken }) => {
 
     return (
         <div>
-            <h2>Search Spotify</h2>
+            <h2 className="text-2xl font-bold mb-4">Search Spotify</h2>
             <form onSubmit={handleSearch}>
                 <input
                     type="text"
-                    placeholder="Search for songs, albums, or artists"
+                    placeholder="Search for songs"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    style={{ padding: "5px", width: "300px", marginRight: "10px" }}
+                    className="bg-gray-700 text-white p-2 rounded w-80 mr-4"
                 />
-                <button type="submit">Search</button>
+                <button
+                    type="submit"
+                    className="bg-green-500 px-4 py-2 rounded hover:bg-green-600"
+                >
+                    Search
+                </button>
             </form>
 
-            {/* Display Search Results */}
             {searchResults.length > 0 && (
-                <div>
-                    <h3>Search Results</h3>
-                    <ul>
-                        {searchResults.map((item) => (
-                            <li key={item.id} style={{ marginBottom: "10px" }}>
-                                {item.album?.images?.[0] && (
+                <ul className="mt-4">
+                    {searchResults.map((track) => (
+                        <li key={track.id} className="mb-4">
+                            <div className="flex items-center space-x-4">
+                                {track.album.images[0] && (
                                     <img
-                                        src={item.album.images[0].url}
+                                        src={track.album.images[0].url}
                                         alt="Album Art"
-                                        style={{ width: "50px", height: "50px", marginRight: "10px" }}
+                                        className="w-16 h-16"
                                     />
                                 )}
-                                <strong>{item.name}</strong> by {item.artists.map((artist) => artist.name).join(", ")}
-                            </li>
-                        ))}
-                    </ul>
-                </div>
+                                <div>
+                                    <p className="text-white font-bold">{track.name}</p>
+                                    <p className="text-gray-400">
+                                        {track.artists
+                                            .map((artist) => artist.name)
+                                            .join(", ")}
+                                    </p>
+                                    {/* Render AddToPlaylist directly for each track */}
+                                    <AddToPlaylist
+                                        accessToken={accessToken}
+                                        trackUri={track.uri}
+                                    />
+                                </div>
+                            </div>
+                        </li>
+                    ))}
+                </ul>
             )}
         </div>
     );
