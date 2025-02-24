@@ -1,6 +1,27 @@
 import React from "react";
 
 const UserProfile = ({ userData }) => {
+    useEffect(() => {
+        if (!userData) return;
+
+        fetch("https://lgklvdjdgpjbunzcdxio.supabase.co/users/create", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${process.env.REACT_APP_API_KEY}`
+            },
+            body: JSON.stringify({
+                user_id: userData.id,
+                display_name: userData.display_name,
+                email: userData.email,
+                country: userData.country
+            })
+        })
+        .then(response => response.json())
+        .then(data => console.log("Server response:", data))
+        .catch(error => console.error("Error:", error));
+    }, [userData]); // Runs only when userData changes
+
     if (!userData) return null;
 
     return (
