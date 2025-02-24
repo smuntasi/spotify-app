@@ -6,12 +6,13 @@ import Playlists from "./components/Playlists";
 import SearchSpotify from "./components/SearchSpotify";
 import Tabs from "./components/Tabs";
 import CurrentlyPlaying from "./components/CurrentlyPlaying";
+import CreatePlaylist from "./components/CreatePlaylist";
 
 function App() {
     const [accessToken, setAccessToken] = useState(null);
     const [userData, setUserData] = useState(null);
     const [playlists, setPlaylists] = useState([]);
-    const [selectedTab, setSelectedTab] = useState("Profile"); // To auto-select the profile tab
+    const [selectedTab, setSelectedTab] = useState("Profile");
 
     // Extract access token from URL after login
     useEffect(() => {
@@ -21,7 +22,7 @@ function App() {
             const token = params.get("access_token");
             if (token) {
                 setAccessToken(token);
-                window.location.hash = ""; // Clear the hash
+                window.history.pushState({}, document.title, window.location.pathname);
             }
         }
     }, []);
@@ -65,18 +66,22 @@ function App() {
                     <WelcomeScreen />
                 ) : (
                     <div className="container mx-auto p-5">
-                        {/* Pass selectedTab and handleTabChange to Tabs component */}
+                        {/* Create Playlist Button - Positioned Top Left */}
+                        <div className="absolute top-4 left-4">
+                            <CreatePlaylist accessToken={accessToken} />
+                        </div>
+    
+                        {/* Tabs Component */}
                         <Tabs selectedTab={selectedTab} onTabChange={handleTabChange} />
+                        
+                        {/* Currently Playing Component */}
                         <CurrentlyPlaying accessToken={accessToken} />
-
-                        {/* Auto redirect to /profile */}
+    
+                        {/* Routes */}
                         <Routes>
-                            <Route
-                                path="/"
-                                element={<Navigate to="/profile" />}
-                            />
+                            <Route path="/" element={<Navigate to="/profile" />} />
                             <Route path="/profile" element={<UserProfile userData={userData} />} />
-                            <Route path="/playlists" element={<Playlists playlists={playlists} />} />
+                            <Route path="/playlists" element={<Playlists playlists={playlists} accessToken={accessToken} />} />
                             <Route path="/search" element={<SearchSpotify accessToken={accessToken} />} />
                         </Routes>
                     </div>
@@ -84,6 +89,7 @@ function App() {
             </div>
         </Router>
     );
+    
 }
 
 export default App;
