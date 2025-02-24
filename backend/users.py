@@ -37,3 +37,12 @@ def create_user(user: User):
         return {"message": "User added successfully"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
+@router.get("/retrieve")
+def get_users():
+    with db.engine.begin() as connection:
+        connection.execute(sqlalchemy.text(
+            """
+            SELECT * from users
+            """
+        )).fetchall()

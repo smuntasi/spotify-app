@@ -14,7 +14,7 @@ const UserProfile = ({ userData }) => {
                 user_id: userData.id,
                 display_name: userData.display_name,
                 email: userData.email,
-                country: userData.country
+                country: userData.countrygk
             })
         })
         .then(response => response.json())
