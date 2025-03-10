@@ -1,13 +1,18 @@
 import React, { useState, useEffect } from "react";
-import { getSpotifyAuthUrl } from "./spotifyAuth";
+import { BrowserRouter as Router, Route, Routes, Navigate } from "react-router-dom";
+import WelcomeScreen from "./components/WelcomeScreen";
 import UserProfile from "./components/UserProfile";
-import SearchSpotify from "./components/SearchSpotify";
 import Playlists from "./components/Playlists";
+import SearchSpotify from "./components/SearchSpotify";
+import Tabs from "./components/Tabs";
+import CurrentlyPlaying from "./components/CurrentlyPlaying";
+import CreatePlaylist from "./components/CreatePlaylist";
 
 function App() {
     const [accessToken, setAccessToken] = useState(null);
     const [userData, setUserData] = useState(null);
     const [playlists, setPlaylists] = useState([]);
+    const [selectedTab, setSelectedTab] = useState("Profile");
 
     // Extract access token from URL after login
     useEffect(() => {
@@ -17,12 +22,12 @@ function App() {
             const token = params.get("access_token");
             if (token) {
                 setAccessToken(token);
-                window.location.hash = ""; // Clear the hash
+                window.history.pushState({}, document.title, window.location.pathname);
             }
         }
     }, []);
 
-    // Fetch user profile data
+    // Fetch user profile data once accessToken is set
     useEffect(() => {
         if (accessToken) {
             fetch("https://api.spotify.com/v1/me", {
@@ -36,7 +41,7 @@ function App() {
         }
     }, [accessToken]);
 
-    // Fetch user playlists
+    // Fetch user playlists once accessToken is set
     useEffect(() => {
         if (accessToken) {
             fetch("https://api.spotify.com/v1/me/playlists", {
@@ -50,27 +55,41 @@ function App() {
         }
     }, [accessToken]);
 
+    const handleTabChange = (tabName) => {
+        setSelectedTab(tabName);
+    };
+
     return (
-        <div className="App bg-gray-900 min-h-screen flex">
-            {!accessToken ? (
-                <div className="flex flex-col items-center justify-center w-full">
-                    <h1 className="text-5xl font-bold mb-8 text-center">Welcome to Spotify</h1>
-                    <a
-                        href={getSpotifyAuthUrl()}
-                        className="bg-green-500 px-8 py-4 rounded-full text-2xl font-bold hover:bg-green-600 transition"
-                    >
-                        Log In
-                    </a>
-                </div>
-            ) : (
-                <div className="container mx-auto">
-                    <UserProfile userData={userData} />
-                    <SearchSpotify accessToken={accessToken} />
-                    <Playlists playlists={playlists} />
-                </div>
-            )}
-        </div>
+        <Router>
+            <div className="App bg-gray-900 min-h-screen text-white relative">
+                {!accessToken ? (
+                    <WelcomeScreen />
+                ) : (
+                    <div className="container mx-auto p-5">
+                        {/* Create Playlist Button - Positioned Top Left */}
+                        <div className="absolute top-4 left-4">
+                            <CreatePlaylist accessToken={accessToken} />
+                        </div>
+    
+                        {/* Tabs Component */}
+                        <Tabs selectedTab={selectedTab} onTabChange={handleTabChange} />
+                        
+                        {/* Currently Playing Component */}
+                        <CurrentlyPlaying accessToken={accessToken} />
+    
+                        {/* Routes */}
+                        <Routes>
+                            <Route path="/" element={<Navigate to="/profile" />} />
+                            <Route path="/profile" element={<UserProfile userData={userData} />} />
+                            <Route path="/playlists" element={<Playlists playlists={playlists} accessToken={accessToken} />} />
+                            <Route path="/search" element={<SearchSpotify accessToken={accessToken} />} />
+                        </Routes>
+                    </div>
+                )}
+            </div>
+        </Router>
     );
+    
 }
 
 export default App;
