@@ -41,8 +41,9 @@ def create_user(user: User):
 @router.get("/retrieve")
 def get_users():
     with db.engine.begin() as connection:
-        connection.execute(sqlalchemy.text(
+        user_id_1 = connection.execute(sqlalchemy.text(
             """
-            SELECT * from users
+            SELECT display_name from users WHERE id = 1
             """
-        )).fetchall()
+        )).scalar_one()
+    return user_id_1

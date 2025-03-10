@@ -8,7 +8,7 @@ const UserProfile = ({ userData }) => {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                "access_token": process.env.REACT_APP_API_KEY
+                "access_token": process.env.API_KEY
             },
             body: JSON.stringify({
                 user_id: userData.id,

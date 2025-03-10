@@ -8,4 +8,5 @@ def database_connection_url():
 
     return os.environ.get("POSTGRES_URI")   #POSTGRES_URI contains the connection URL for the database
 
+print("Backend Up and Running: ")
 engine = create_engine(database_connection_url(), pool_pre_ping=True)
