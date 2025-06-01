@@ -8,7 +8,10 @@ const Tabs = () => {
     { name: "Profile", path: "/profile" },
     { name: "Playlists", path: "/playlists" },
     { name: "Search", path: "/search" },
+    { name: "Stats", path: "/stats" },
+    { name: "Recommendations", path: "/recommendations" },
   ];
+  
 
   return (
     <div className="tabs-container">

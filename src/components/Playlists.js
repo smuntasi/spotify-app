@@ -5,6 +5,7 @@ const Playlists = ({ accessToken }) => {
     const [selectedPlaylist, setSelectedPlaylist] = useState(null);
     const [tracks, setTracks] = useState([]);
     const [isPopupOpen, setIsPopupOpen] = useState(false);
+    const [likedTracks, setLikedTracks] = useState({}); // Store liked status
 
     useEffect(() => {
         if (!accessToken) return;
@@ -48,9 +49,35 @@ const Playlists = ({ accessToken }) => {
             const data = await response.json();
             setTracks(data.items);
             setIsPopupOpen(true);
+
+            // Fetch liked status for tracks
+            const trackIds = data.items.map(item => item.track.id).join(",");
+            checkLikedStatus(trackIds);
         } catch (error) {
             console.error("Error fetching tracks:", error);
             setTracks([]);
+        }
+    };
+
+    const checkLikedStatus = async (trackIds) => {
+        if (!accessToken || !trackIds) return;
+
+        try {
+            const response = await fetch(`https://api.spotify.com/v1/me/tracks/contains?ids=${trackIds}`, {
+                headers: { Authorization: `Bearer ${accessToken}` },
+            });
+
+            if (!response.ok) throw new Error("Failed to check liked status");
+
+            const data = await response.json();
+            const newLikedTracks = {};
+            trackIds.split(",").forEach((id, index) => {
+                newLikedTracks[id] = data[index];
+            });
+
+            setLikedTracks(newLikedTracks);
+        } catch (error) {
+            console.error("Error checking liked tracks:", error);
         }
     };
 
@@ -89,6 +116,38 @@ const Playlists = ({ accessToken }) => {
             console.error("Error playing track:", error);
         }
     };
+
+    const toggleLikeTrack = async (trackId) => {
+        if (!accessToken || !trackId) return;
+    
+        const isCurrentlyLiked = likedTracks[trackId]; // Check current liked status
+        const method = isCurrentlyLiked ? "DELETE" : "PUT";
+    
+        try {
+            const response = await fetch(`https://api.spotify.com/v1/me/tracks?ids=${trackId}`, {
+                method: method,
+                headers: {
+                    Authorization: `Bearer ${accessToken}`,
+                    "Content-Type": "application/json",
+                },
+            });
+    
+            if (!response.ok) {
+                throw new Error(`Failed to update liked status: ${response.status}`);
+            }
+    
+            console.log(`${isCurrentlyLiked ? "Removed from" : "Added to"} Liked Songs:`, trackId);
+    
+            // Update UI after successful response
+            setLikedTracks(prev => ({
+                ...prev,
+                [trackId]: !isCurrentlyLiked, // Toggle the state
+            }));
+        } catch (error) {
+            console.error("Error toggling like status:", error);
+        }
+    };
+    
 
     return (
         <div>
@@ -173,6 +232,22 @@ const Playlists = ({ accessToken }) => {
                                                 style={{ width: '50px', height: '50px', borderRadius: '4px' }}
                                             />
                                             <span>{item.track.name} - {item.track.artists.map(artist => artist.name).join(", ")}</span>
+
+                                            {/* Like Button */}
+                                            <button 
+                                                onClick={() => toggleLikeTrack(item.track.id)}
+                                                style={{
+                                                    fontSize: "20px",
+                                                    cursor: "pointer",
+                                                    background: "none",
+                                                    border: "none",
+                                                    color: likedTracks[item.track.id] ? "red" : "gray",
+                                                }}
+                                            >
+                                                {likedTracks[item.track.id] ? "❤️" : "🤍"}
+                                            </button>
+
+                                            {/* Play Button */}
                                             <button 
                                                 onClick={() => playTrack(item.track.uri)}
                                                 style={{ marginLeft: 'auto', fontSize: '16px', cursor: 'pointer', background: 'none', border: 'none', color: 'blue' }}
