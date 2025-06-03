@@ -11,6 +11,8 @@ import RecentlyPlayed from "./components/RecentlyPlayed";
 import { getSpotifyAuthUrl, getTokenFromUrl } from "./spotifyAuth";
 import Stats from "./components/Stats";
 import Recommendations from "./components/Recommendations";
+import PlaylistBuilder from "./components/PlaylistBuilder";
+
 
 
 function App() {
@@ -113,9 +115,9 @@ function App() {
                             <Route path="/playlists" element={<Playlists playlists={playlists} accessToken={accessToken} />} />
                             <Route path="/search" element={<SearchSpotify accessToken={accessToken} />} />
 
-                            <Route path="/stats" element={<Stats />} />
-                            <Route path="/recommendations" element={<Recommendations />} />
-
+                            <Route path="/stats" element={<Stats accessToken={accessToken} />} />
+                            <Route path="/recommendations" element={<Recommendations accessToken={accessToken} />} />
+                            <Route path="/playlist-builder" element={<PlaylistBuilder accessToken={accessToken} />} />
                         </Routes>
                     </div>
                 )}

@@ -10,6 +10,7 @@ const Tabs = () => {
     { name: "Search", path: "/search" },
     { name: "Stats", path: "/stats" },
     { name: "Recommendations", path: "/recommendations" },
+    { name: "Combine Playlists", path: "/playlist-builder" },
   ];
   
 

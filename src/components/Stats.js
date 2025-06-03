@@ -1,102 +1,77 @@
 import React, { useEffect, useState } from "react";
 
-const Stats = () => {
-  const [stats, setStats] = useState(null);
+const Stats = ({ accessToken }) => {
+  const [topGenres, setTopGenres] = useState([]);
+  const [topArtists, setTopArtists] = useState([]);
+  const [trackSummary, setTrackSummary] = useState({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("http://localhost:5000/api/stats/all")
-      .then(res => res.json())
-      .then(data => {
-        setStats(data);
+    const fetchStats = async () => {
+      if (!accessToken) return;
+
+      try {
+        const [genresRes, artistsRes, summaryRes] = await Promise.all([
+          fetch(`http://localhost:8000/stats/top-genres?access_token=${accessToken}`),
+          fetch(`http://localhost:8000/stats/top-artists?access_token=${accessToken}`),
+          fetch(`http://localhost:8000/stats/track-summary?access_token=${accessToken}`)
+        ]);
+
+        const genresData = await genresRes.json();
+        const artistsData = await artistsRes.json();
+        const summaryData = await summaryRes.json();
+
+        setTopGenres(genresData.top_genres || []);
+        setTopArtists(artistsData.top_artists || []);
+        setTrackSummary(summaryData || {});
         setLoading(false);
-      })
-      .catch(err => {
-        console.error("Error fetching stats:", err);
+      } catch (err) {
+        console.error("❌ Failed to fetch stats:", err);
         setLoading(false);
-      });
-  }, []);
+      }
+    };
 
-  if (loading) return <div className="p-6 text-gray-300">Loading stats...</div>;
-  if (!stats) return <div className="p-6 text-red-500">Failed to load stats.</div>;
+    fetchStats();
+  }, [accessToken]);
 
-  // Group top song by year
-  const topByYear = [];
-  const seenYears = new Set();
-  for (const row of stats.top_yearly) {
-    if (!seenYears.has(row.year)) {
-      seenYears.add(row.year);
-      topByYear.push(row);
-    }
-  }
-
-  // Group top song by month (show most recent 6)
-  const topMonthlyMap = new Map();
-  for (const row of stats.top_monthly) {
-    const month = row.month;
-    if (!topMonthlyMap.has(month)) {
-      topMonthlyMap.set(month, row);
-    }
-  }
-
-  const sortedTopMonths = Array.from(topMonthlyMap.values())
-    .sort((a, b) => (b.month > a.month ? 1 : -1))
-    .slice(0, 6);
+  if (loading) return <p>Loading stats...</p>;
 
   return (
-    <div className="p-6 text-white">
-      <h1 className="text-3xl font-bold mb-6">Listening Stats</h1>
+    <div style={{ padding: "1rem" }}>
+      <h2>User Listening Stats</h2>
 
-      <section className="mb-8">
-        <h2 className="text-xl font-semibold mb-2">Top Songs</h2>
-        <ul className="list-disc pl-6">
-          {stats.scores?.slice(0, 10).map((s, i) => (
-            <li key={i}>{s.track} by {s.artist}</li>
+      <section>
+        <h3>🎵 Top Genres</h3>
+        <ul>
+          {topGenres.map(([genre, count], idx) => (
+            <li key={idx}>{genre} ({count})</li>
           ))}
         </ul>
       </section>
 
-      <section className="mb-8">
-        <h2 className="text-xl font-semibold mb-2">Top Songs by Year</h2>
-        <ul className="list-disc pl-6">
-          {topByYear.map((s, i) => (
-            <li key={i}>
-              {s.master_metadata_track_name} ({s.year}) — {s.playCount} plays
-            </li>
+      <section>
+        <h3>🎤 Top Artists</h3>
+        <ul>
+          {topArtists.map(([artist, count], idx) => (
+            <li key={idx}>{artist} ({count})</li>
           ))}
         </ul>
       </section>
 
-      <section className="mb-8">
-        <h2 className="text-xl font-semibold mb-2">Top Songs by Month</h2>
-        <ul className="list-disc pl-6">
-          {sortedTopMonths.map((s, i) => (
-            <li key={i}>
-              {s.master_metadata_track_name} ({s.month}) — {s.playCount} plays
-            </li>
-          ))}
-        </ul>
-      </section>
+      <section>
+        <h3>📊 Track Summary</h3>
+        <p>Average popularity: {trackSummary.average_popularity}</p>
+        <p>Total unique tracks: {trackSummary.total_unique_tracks}</p>
+        <p>Genre diversity score: {trackSummary.genre_diversity}</p>
 
-      <section className="mb-8">
-        <h2 className="text-xl font-semibold mb-2">Most Consistent Songs</h2>
-        <ul className="list-disc pl-6">
-          {stats.most_consistent?.slice(0, 10).map((s, i) => (
-            <li key={i}>
-              {s.master_metadata_track_name} — {s.monthsActive} active months
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      <section className="mb-8">
-        <h2 className="text-xl font-semibold mb-2">Top Artists</h2>
-        <ul className="list-disc pl-6">
-          {stats.top_artists?.slice(0, 10).map((a, i) => (
-            <li key={i}>
-              {a.master_metadata_album_artist_name} — {parseFloat(a.totalMinutes).toFixed(0)} mins
-            </li>
-          ))}
+        <h4>Release Year Distribution:</h4>
+        <ul>
+          {trackSummary.release_year_distribution &&
+            Object.entries(trackSummary.release_year_distribution).map(
+              ([year, count]) => (
+                <li key={year}>{year}: {count}</li>
+              )
+            )}
         </ul>
       </section>
     </div>

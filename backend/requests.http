@@ -1,0 +1,123 @@
+@token = BQCRjBc4Dg3Cf7kZPsEMohGv6NOr1VRinxVO3t1Ae08ohAoMn8MZDs0PaVKPv3Pn8FDAaM1mPvFA0iQ9YaJZ2jyNixBBc6t2d6lpFcMFWonyFiG1534Uu4gzOzVBrxYW1PAKgY9BVNx8u_VfBbNq3jR_PykxJm_UxvCty3Nb1Yaxi-ExKAhwZFj-5zAQiCF0wAnNiBmmkMRE3KP0-Znqv9pAPFzBbOFhvt598apXdo0E2guRo4a4kNZ8Zclo1jy1t9v7uOAbHk7RB6Bi-IxBTZbmL4XS7ACshliCySf2XGV8k49fao2t2HQI9ZIO8lEqgijDD9lAsSaqR_ONU68
+POST http://localhost:8000/admin/reset
+
+### Ping the backend to check it's up and responding
+GET http://localhost:8000/admin/ping
+
+### Import user profile
+POST http://localhost:8000/user/profile
+Content-Type: application/json
+
+{
+  "access_token": "{{token}}"
+}
+
+### Import user top 20 tracks
+POST http://localhost:8000/user/top-tracks
+Content-Type: application/json
+
+{
+  "access_token": "{{token}}"
+}
+
+### Import user's liked tracks
+POST http://localhost:8000/user/liked-tracks
+Content-Type: application/json
+
+{
+  "access_token": "{{token}}"
+}
+
+### Import user's recently played tracks
+POST http://localhost:8000/user/recently-played
+Content-Type: application/json
+
+{
+  "access_token": "{{token}}"
+}
+
+### Import all user playlists
+POST http://localhost:8000/playlists/import
+Content-Type: application/json
+
+{
+  "access_token": "{{token}}"
+}
+
+### Import all tracks from the user's playlists
+POST http://localhost:8000/playlists/tracks
+Content-Type: application/json
+
+{
+  "access_token": "{{token}}"
+}
+
+### Refresh playlist tracks only if the snapshot_id has changed
+POST http://localhost:8000/playlists/snapshots
+Content-Type: application/json
+
+{
+  "access_token": "{{token}}"
+}
+
+### Enrich all tracks for the current user with popularity, release_date, and genres
+POST http://localhost:8000/user/enrich-metadata
+Content-Type: application/json
+
+{
+  "access_token": "{{token}}"
+}
+
+### Get content-based recommendations for a user
+GET http://localhost:8000/recommendations?access_token={{token}}
+
+### Seed global new track releases into DB (up to 200 albums)
+POST http://localhost:8000/seeds/new-releases
+Content-Type: application/json
+
+{
+  "access_token": "{{token}}",
+  "max_albums": 50
+}
+
+### Enrich tracks that are missing popularity, release date, or genres
+POST http://localhost:8000/seeds/enrich-missing
+Content-Type: application/json
+
+{
+  "access_token": "{{token}}"
+}
+
+### Get top genres for a user
+GET http://localhost:8000/stats/top-genres?access_token={{token}}
+
+### Get top artists for a user
+GET http://localhost:8000/stats/top-artists?access_token={{token}}
+
+### Get track summary for a user
+GET http://localhost:8000/stats/track-summary?access_token={{token}}
+
+
+### Creates a custom playlist using a list of track IDs
+POST http://localhost:8000/playlists/build
+Content-Type: application/json
+
+{
+  "access_token": "{{token}}",
+  "track_ids": ["0tduSYti0mY7p8j5AIO4Pg", "7LhBiqLbHd4BichEUoo6rJ"],
+  "playlist_name": "My AI Generated Mix 2"
+}
+
+### Combine two playlists into a new one --NOT WORKING
+POST http://localhost:8000/playlists/combine
+Content-Type: application/json
+
+{
+  "playlist1_id": "7dUPN2z6Fj9QHo5hc9aeus",
+  "playlist2_id": "1W1PTjrgWKv0PfykBKX0MV"
+}
+
+
+
+
+

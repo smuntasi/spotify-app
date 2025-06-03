@@ -2,6 +2,7 @@ export const authEndpoint = "https://accounts.spotify.com/authorize";
 const clientId = "3267424e555e4ef58f9d93280ebbeb1e";  
 const redirectUri = "http://localhost:3000/callback";   // Ensure this matches in Spotify Developer Dashboard
 const scopes = [
+    "user-top-read",
     "user-read-private",
     "user-read-playback-state",
     "user-read-recently-played",
