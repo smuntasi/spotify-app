@@ -4,7 +4,6 @@ import sqlalchemy
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 
-# deletes all data from every table
 @router.post("/reset")
 def reset_all_data():
     try:
@@ -22,7 +21,6 @@ def reset_all_data():
         print("Error wiping data:", str(e))
         raise HTTPException(status_code=500, detail="Failed to wipe data.")
 
-# test if db is up and running
 @router.get("/ping")
 def ping():
     return {"status": "Pong! Backend is alive."}

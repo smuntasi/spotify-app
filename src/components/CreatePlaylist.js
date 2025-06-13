@@ -29,17 +29,17 @@ const CreatePlaylist = ({ accessToken }) => {
       const data = await response.json();
 
       if (response.ok) {
-        setMessage("✅ Playlist created successfully!");
+        setMessage("Playlist created successfully!");
         setPlaylistName("");
         setImageUrl("");
         setIsPublic(true);
         setIsPopupOpen(false);
       } else {
-        setMessage(`❌ Error: ${data.error?.message}`);
+        setMessage(`Error: ${data.error?.message}`);
       }
     } catch (error) {
       console.error("Error creating playlist:", error);
-      setMessage("❌ Error creating playlist.");
+      setMessage("Error creating playlist.");
     }
   };
 

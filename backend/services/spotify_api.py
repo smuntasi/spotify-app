@@ -112,9 +112,6 @@ def get_album_tracks(access_token: str, album_id: str) -> list:
     return tracks
 
 def create_playlist(access_token: str, user_id: str, name: str, public: bool = False) -> dict:
-    """
-    Creates a new playlist for the user with the given name.
-    """
     headers = {
         "Authorization": f"Bearer {access_token}",
         "Content-Type": "application/json"
@@ -130,15 +127,11 @@ def create_playlist(access_token: str, user_id: str, name: str, public: bool = F
 
 
 def add_tracks_to_playlist(access_token: str, playlist_id: str, track_ids: list[str]):
-    """
-    Adds a list of track IDs to the specified playlist.
-    """
     headers = {
         "Authorization": f"Bearer {access_token}",
         "Content-Type": "application/json"
     }
 
-    # Spotify accepts up to 100 track URIs per request
     track_uris = [f"spotify:track:{track_id}" for track_id in track_ids]
     for i in range(0, len(track_uris), 100):
         chunk = track_uris[i:i + 100]
@@ -149,7 +142,20 @@ def add_tracks_to_playlist(access_token: str, playlist_id: str, track_ids: list[
         )
         resp.raise_for_status()
 
+def get_playlist_tracks(access_token, playlist_id):
+    import requests
+    headers = {"Authorization": f"Bearer {access_token}"}
+    url = f"https://api.spotify.com/v1/playlists/{playlist_id}/tracks"
 
+    tracks = []
+    while url:
+        res = requests.get(url, headers=headers)
+        res.raise_for_status()
+        data = res.json()
+        tracks.extend(data["items"])
+        url = data.get("next")
+
+    return tracks
 
 
 

@@ -73,12 +73,12 @@ const Recommendations = ({ accessToken }) => {
 
     const data = await res.json();
     if (res.ok) {
-      alert(`✅ Playlist created! View it on Spotify: https://open.spotify.com/playlist/${data.playlist_id}`);
+      alert(`Playlist created! View it on Spotify: https://open.spotify.com/playlist/${data.playlist_id}`);
     } else {
       throw new Error(data.detail || "Failed to create playlist");
     }
   } catch (err) {
-    console.error("🚨 Error creating playlist:", err);
+    console.error("Error creating playlist:", err);
     alert("Something went wrong creating the playlist.");
   }
 };

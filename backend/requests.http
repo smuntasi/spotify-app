@@ -1,4 +1,4 @@
-@token = BQCRjBc4Dg3Cf7kZPsEMohGv6NOr1VRinxVO3t1Ae08ohAoMn8MZDs0PaVKPv3Pn8FDAaM1mPvFA0iQ9YaJZ2jyNixBBc6t2d6lpFcMFWonyFiG1534Uu4gzOzVBrxYW1PAKgY9BVNx8u_VfBbNq3jR_PykxJm_UxvCty3Nb1Yaxi-ExKAhwZFj-5zAQiCF0wAnNiBmmkMRE3KP0-Znqv9pAPFzBbOFhvt598apXdo0E2guRo4a4kNZ8Zclo1jy1t9v7uOAbHk7RB6Bi-IxBTZbmL4XS7ACshliCySf2XGV8k49fao2t2HQI9ZIO8lEqgijDD9lAsSaqR_ONU68
+@token = BQB0qUP1zCyEpzYe2kgC60FSWl3dzXRb2VMZB7rSUdoFO07bdvGxAodEfQ4uhLRdea-k5SdMn-Ugh97cySUS9VwwJItJL_lOEa5DmUBi4c7YhwGWQJoxztWm5MgraYrQoAs9DQnxcQHcdVD3_sGDI32iauS57T9DRlpVLfNHe8VlqzggiYQu3IBGvYcu1cutJoK5V7Sa3117VUv8vFVXE8h3ZkrV-ZlOyCqMhGK9PkRcsp0oBNql6iA2JqJAyJdG110xuCudO39ClwK_iuPtZgGpd_ellZC-x6qDxVrxtTh-4Y_EUTCrCN-iNf1iHkVSOlFJLmEMjQJXfStdRZQ
 POST http://localhost:8000/admin/reset
 
 ### Ping the backend to check it's up and responding
@@ -60,14 +60,6 @@ Content-Type: application/json
   "access_token": "{{token}}"
 }
 
-### Enrich all tracks for the current user with popularity, release_date, and genres
-POST http://localhost:8000/user/enrich-metadata
-Content-Type: application/json
-
-{
-  "access_token": "{{token}}"
-}
-
 ### Get content-based recommendations for a user
 GET http://localhost:8000/recommendations?access_token={{token}}
 
@@ -78,14 +70,6 @@ Content-Type: application/json
 {
   "access_token": "{{token}}",
   "max_albums": 50
-}
-
-### Enrich tracks that are missing popularity, release date, or genres
-POST http://localhost:8000/seeds/enrich-missing
-Content-Type: application/json
-
-{
-  "access_token": "{{token}}"
 }
 
 ### Get top genres for a user
@@ -108,15 +92,43 @@ Content-Type: application/json
   "playlist_name": "My AI Generated Mix 2"
 }
 
-### Combine two playlists into a new one --NOT WORKING
+### Combine two playlists into a new one
 POST http://localhost:8000/playlists/combine
 Content-Type: application/json
 
 {
-  "playlist1_id": "7dUPN2z6Fj9QHo5hc9aeus",
-  "playlist2_id": "1W1PTjrgWKv0PfykBKX0MV"
+  "access_token": "{{token}}",
+  "playlist_ids": ["3U9cVsRVEC3gG8TIaQpl7n", "4o6bpaBOrsk2ir0A3CQL2x"],
+  "playlist_name": "My Combined Playlist"
 }
 
+
+### Delete removed playlists
+POST http://localhost:8000/playlists/prune
+Content-Type: application/json
+
+{
+  "access_token": "{{token}}"
+}
+
+
+### Enrich track metadata for a specific user
+POST http://localhost:8000/tracks/enrich
+Content-Type: application/json
+
+{
+  "access_token": "{{token}}",
+  "mode": "user"
+}
+
+### Enrich all missing track metadata globally
+POST http://localhost:8000/tracks/enrich
+Content-Type: application/json
+
+{
+  "access_token": "{{token}}",
+  "mode": "global"
+}
 
 
 

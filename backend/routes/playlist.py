@@ -10,7 +10,6 @@ router = APIRouter(prefix="/playlists", tags=["playlists"])
 
 @router.post("/import")
 def import_user_playlists(access_token: str = Body(..., embed=True)):
-    """🎵 Imports all the user's playlists into the database."""
     try:
         user = spotify.get_user_profile(access_token)
         user_uuid = str(uuid.uuid5(uuid.NAMESPACE_DNS, user["id"]))
@@ -41,7 +40,6 @@ def import_user_playlists(access_token: str = Body(..., embed=True)):
 
 @router.post("/tracks")
 def import_playlist_tracks(access_token: str = Body(..., embed=True)):
-    """📥 Imports all tracks from each of the user's playlists."""
     try:
         user = spotify.get_user_profile(access_token)
         user_uuid = str(uuid.uuid5(uuid.NAMESPACE_DNS, user["id"]))
@@ -90,7 +88,6 @@ def import_playlist_tracks(access_token: str = Body(..., embed=True)):
 
 @router.post("/snapshots")
 def refresh_playlists_if_snapshot_changed(access_token: str = Body(..., embed=True)):
-    """🔁 Refreshes playlist tracks if the snapshot_id has changed."""
     try:
         user = spotify.get_user_profile(access_token)
         user_uuid = str(uuid.uuid5(uuid.NAMESPACE_DNS, user["id"]))
@@ -160,27 +157,20 @@ def build_custom_playlist(
     track_ids: list[str] = Body(..., embed=True),
     playlist_name: str = Body(..., embed=True)
 ):
-    """
-    🎛 Builds a new Spotify playlist from a list of track IDs and stores it locally.
-    """
+
     try:
-        # Get user info and generate consistent local user UUID
         user_data = spotify.get_user_profile(access_token)
         user_id = user_data["id"]
         user_uuid = str(uuid.uuid5(uuid.NAMESPACE_DNS, user_id))
 
-        # 1. Create the playlist on Spotify
         playlist = spotify.create_playlist(access_token, user_id, playlist_name)
         playlist_id = playlist["id"]
         snapshot_id = playlist["snapshot_id"]
         is_public = playlist["public"]
 
-        # 2. Add tracks to the new playlist
         spotify.add_tracks_to_playlist(access_token, playlist_id, track_ids)
 
-        # 3. Store the playlist and tracks locally
         with engine.begin() as conn:
-            # Insert playlist record
             conn.execute(text("""
                 INSERT INTO playlists (id, user_id, name, is_public, snapshot_id)
                 VALUES (:id, :user_id, :name, :is_public, :snapshot_id)
@@ -193,7 +183,6 @@ def build_custom_playlist(
                 "snapshot_id": snapshot_id
             })
 
-            # Insert track associations
             for track_id in track_ids:
                 conn.execute(text("""
                     INSERT INTO playlist_tracks (playlist_id, track_id)
@@ -207,65 +196,107 @@ def build_custom_playlist(
         return {"message": "Custom playlist created successfully", "playlist_id": playlist_id}
 
     except Exception as e:
-        print(f"🚨 Playlist build error: {e}")
+        print(f"Playlist build error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
     
-
-
-## not working   
 @router.post("/combine")
-def combine_user_playlists(
-    playlist1_id: str = Body(..., embed=True),
-    playlist2_id: str = Body(..., embed=True),
+def combine_playlists(
+    access_token: str = Body(..., embed=True),
+    playlist_ids: list[str] = Body(..., embed=True),
+    playlist_name: str = Body(..., embed=True)
 ):
-    """
-    Combines two user playlists into a new one and stores it in the database.
-    """
     try:
+        user_data = spotify.get_user_profile(access_token)
+        user_id = user_data["id"]
+        user_uuid = str(uuid.uuid5(uuid.NAMESPACE_DNS, user_id))
+        combined_tracks = []
+
+        combined_track_ids = set()
+        for pid in playlist_ids:
+            tracks = spotify.get_playlist_tracks(access_token, pid)
+            for t in tracks:
+                if t["track"] and t["track"]["id"]:
+                    combined_track_ids.add(t["track"]["id"])
+
+        track_ids = list(combined_track_ids)
+
+        playlist = spotify.create_playlist(access_token, user_id, playlist_name)
+        playlist_id = playlist["id"]
+        snapshot_id = playlist["snapshot_id"]
+        is_public = playlist["public"]
+
+        spotify.add_tracks_to_playlist(access_token, playlist_id, track_ids)
+
         with engine.begin() as conn:
-            # Fetch both sets of track IDs
-            tracks1 = conn.execute(text("""
-                SELECT track_id FROM playlist_tracks WHERE playlist_id = :id
-            """), {"id": playlist1_id}).scalars().all()
-
-            tracks2 = conn.execute(text("""
-                SELECT track_id FROM playlist_tracks WHERE playlist_id = :id
-            """), {"id": playlist2_id}).scalars().all()
-
-            combined_tracks = list(set(tracks1 + tracks2))
-            if not combined_tracks:
-                raise HTTPException(status_code=400, detail="No tracks found in the selected playlists.")
-
-            # Create new playlist entry
-            new_playlist_id = str(uuid.uuid4())
-            combined_name = f"Combined: {playlist1_id[:6]} + {playlist2_id[:6]}"
-            now = datetime.utcnow()
-
             conn.execute(text("""
                 INSERT INTO playlists (id, user_id, name, is_public, snapshot_id)
-                SELECT :id, user_id, :name, false, :snapshot
-                FROM playlists WHERE id = :orig LIMIT 1
+                VALUES (:id, :user_id, :name, :is_public, :snapshot_id)
+                ON CONFLICT (id) DO NOTHING
             """), {
-                "id": new_playlist_id,
-                "name": combined_name,
-                "snapshot": f"combined-{now.timestamp()}",
-                "orig": playlist1_id
+                "id": playlist_id,
+                "user_id": user_uuid,
+                "name": playlist_name,
+                "is_public": is_public,
+                "snapshot_id": snapshot_id
             })
 
-            # Insert track mappings
-            for track_id in combined_tracks:
+            for track in combined_tracks:
                 conn.execute(text("""
-                    INSERT INTO playlist_tracks (playlist_id, track_id, added_at)
-                    VALUES (:playlist_id, :track_id, :added_at)
+                    INSERT INTO tracks (id, name, artist, album, uri)
+                    VALUES (:id, :name, :artist, :album, :uri)
+                    ON CONFLICT (id) DO NOTHING
+                """), {
+                    "id": track["id"],
+                    "name": track["name"],
+                    "artist": track["artists"][0]["name"],
+                    "album": track["album"]["name"],
+                    "uri": track["uri"]
+                    })
+
+            for track_id in track_ids:
+                conn.execute(text("""
+                    INSERT INTO playlist_tracks (playlist_id, track_id)
+                    VALUES (:playlist_id, :track_id)
                     ON CONFLICT DO NOTHING
                 """), {
-                    "playlist_id": new_playlist_id,
-                    "track_id": track_id,
-                    "added_at": now
+                    "playlist_id": playlist_id,
+                    "track_id": track_id
                 })
 
-            return {"message": "Combined playlist created", "playlist_id": new_playlist_id, "name": combined_name}
+        return {"message": "Combined playlist created", "playlist_id": playlist_id}
 
     except Exception as e:
-        print(f"🚨 Error combining playlists: {e}")
-        raise HTTPException(status_code=500, detail="Failed to combine playlists.")
+        print(f"Playlist combine error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+    
+@router.post("/prune")
+def delete_removed_playlists(access_token: str = Body(..., embed=True)):
+    try:
+        user = spotify.get_user_profile(access_token)
+        user_uuid = str(uuid.uuid5(uuid.NAMESPACE_DNS, user["id"]))
+        spotify_playlists = spotify.get_user_playlists(access_token)
+        spotify_playlist_ids = {pl["id"] for pl in spotify_playlists}
+
+        with engine.begin() as conn:
+            local_playlist_ids = set(conn.execute(text("""
+                SELECT id FROM playlists WHERE user_id = :uid
+            """), {"uid": user_uuid}).scalars().all())
+
+            deleted_ids = local_playlist_ids - spotify_playlist_ids
+
+            if deleted_ids:
+                conn.execute(text("""
+                    DELETE FROM playlist_tracks WHERE playlist_id = ANY(:deleted)
+                """), {"deleted": list(deleted_ids)})
+
+                conn.execute(text("""
+                    DELETE FROM playlists WHERE id = ANY(:deleted)
+                """), {"deleted": list(deleted_ids)})
+
+        return {"deleted": list(deleted_ids)}
+
+    except Exception as e:
+        print("Playlist prune error:", str(e))
+        raise HTTPException(status_code=500, detail=str(e))
+
+

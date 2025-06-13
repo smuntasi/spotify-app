@@ -14,10 +14,6 @@ router = APIRouter(
 
 @router.get("")
 def get_content_based_recommendations(access_token: str = Query(...)):
-    """
-    Returns content-based recommendations based on user's liked, top, recent, and playlist tracks.
-    Uses cosine similarity between vectorized metadata (popularity, release_date, genres).
-    """
     try:
         user_profile = spotify_api.get_user_profile(access_token)
         user_uuid = str(uuid.uuid5(uuid.NAMESPACE_DNS, user_profile["id"]))
@@ -45,7 +41,6 @@ def get_content_based_recommendations(access_token: str = Query(...)):
         if not user_tracks:
             raise HTTPException(status_code=404, detail="No user track data found")
 
-        # Normalize genre labels
         def genre_vector(genres, all_genres):
             vec = [0] * len(all_genres)
             for g in json.loads(genres or "[]"):
@@ -82,5 +77,5 @@ def get_content_based_recommendations(access_token: str = Query(...)):
         return {"recommendations": [r[0] for r in top_recs]}
 
     except Exception as e:
-        print("🚨 Error generating content-based recommendations:", str(e))
+        print("Error generating content-based recommendations:", str(e))
         raise HTTPException(status_code=500, detail=str(e))

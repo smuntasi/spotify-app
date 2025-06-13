@@ -5,7 +5,6 @@ const AddToPlaylist = ({ accessToken, trackUri }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
 
-  // Fetch user playlists
   useEffect(() => {
     if (accessToken) {
       fetch("https://api.spotify.com/v1/me/playlists", {
@@ -21,7 +20,6 @@ const AddToPlaylist = ({ accessToken, trackUri }) => {
     }
   }, [accessToken]);
 
-  // Add track to playlist
   const handleAddToPlaylist = async (playlistId) => {
     if (!playlistId || !trackUri) {
       setSuccessMessage("Please select a playlist.");
@@ -42,17 +40,17 @@ const AddToPlaylist = ({ accessToken, trackUri }) => {
       );
 
       if (response.ok) {
-        setSuccessMessage("✅ Track added successfully!");
+        setSuccessMessage("Track added successfully!");
       } else {
         const data = await response.json();
-        setSuccessMessage(`❌ Failed to add track: ${data.error?.message}`);
+        setSuccessMessage(`Failed to add track: ${data.error?.message}`);
       }
     } catch (error) {
       console.error("Error adding track:", error);
-      setSuccessMessage("❌ Error adding track. Check console.");
+      setSuccessMessage("Error adding track. Check console.");
     }
 
-    setIsDropdownOpen(false); // Close dropdown after adding track
+    setIsDropdownOpen(false);
   };
 
   return (

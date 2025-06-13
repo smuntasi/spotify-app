@@ -12,9 +12,6 @@ router = APIRouter(
 
 @router.get("/top-genres")
 def get_top_genres(access_token: str = Query(...)):
-    """
-    Returns the top genres for a user based on their liked, played, and top tracks.
-    """
     try:
         user = spotify_api.get_user_profile(access_token)
         user_uuid = str(uuid.uuid5(uuid.NAMESPACE_DNS, user["id"]))
@@ -47,14 +44,11 @@ def get_top_genres(access_token: str = Query(...)):
         return {"top_genres": top_genres}
 
     except Exception as e:
-        print(f"🚨 Error in /stats/top-genres: {e}")
+        print(f"Error in /stats/top-genres: {e}")
         raise HTTPException(status_code=500, detail="Failed to get top genres")
 
 @router.get("/top-artists")
 def get_top_artists(access_token: str = Query(...)):
-    """
-    Returns the top artists for a user based on their liked, played, and top tracks.
-    """
     try:
         user = spotify_api.get_user_profile(access_token)
         user_uuid = str(uuid.uuid5(uuid.NAMESPACE_DNS, user["id"]))
@@ -82,15 +76,11 @@ def get_top_artists(access_token: str = Query(...)):
         return {"top_artists": top_artists}
 
     except Exception as e:
-        print(f"🚨 Error in /stats/top-artists: {e}")
+        print(f"Error in /stats/top-artists: {e}")
         raise HTTPException(status_code=500, detail="Failed to get top artists")
 
 @router.get("/track-summary")
 def get_track_summary(access_token: str = Query(...)):
-    """
-    Returns a summary of the user's tracks, including average popularity,
-    release year distribution, genre diversity, and total unique tracks.
-    """
     try:
         user = spotify_api.get_user_profile(access_token)
         user_uuid = str(uuid.uuid5(uuid.NAMESPACE_DNS, user["id"]))
@@ -144,5 +134,5 @@ def get_track_summary(access_token: str = Query(...)):
         }
 
     except Exception as e:
-        print(f"🚨 Error in /stats/track-summary: {e}")
+        print(f"Error in /stats/track-summary: {e}")
         raise HTTPException(status_code=500, detail="Failed to retrieve track summary.")

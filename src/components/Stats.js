@@ -26,7 +26,7 @@ const Stats = ({ accessToken }) => {
         setTrackSummary(summaryData || {});
         setLoading(false);
       } catch (err) {
-        console.error("❌ Failed to fetch stats:", err);
+        console.error("Failed to fetch stats:", err);
         setLoading(false);
       }
     };
